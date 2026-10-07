@@ -1,6 +1,6 @@
-# Riftwatch Template
+# Riftwatch Quests
 
-Custom NeoForge mod `riftwatch_template` of the Riftwatch Minecraft server (Minecraft 1.21.1, NeoForge 21.1.255, Create 6.0.10). Private repository `Riftwatch-Official/riftwatch-mod-template`.
+Custom NeoForge mod `rift_quests` of the Riftwatch Minecraft server (Minecraft 1.21.1, NeoForge 21.1.255, Create 6.0.10). Private repository `Riftwatch-Official/riftwatch-mod-rift-quests`.
 
 The development guide for all Riftwatch mods (environment, Test and Deploy mode, deploy flow, rollback) is `custom-mods/README.md` in the repository `Riftwatch-Official/riftwatch-server`. New mods are created with `scripts/new-mod.sh` there, never by copying a mod by hand.
 
@@ -8,7 +8,7 @@ The development guide for all Riftwatch mods (environment, Test and Deploy mode,
 
 | Command | Purpose |
 |---|---|
-| `./gradlew build` | builds `build/libs/riftwatch_template-<version>.jar` |
+| `./gradlew build` | builds `build/libs/rift_quests-<version>.jar` |
 | `./gradlew runServer` | dev server in `run/` (once: `eula=true` in `run/eula.txt`, `online-mode=false` in `run/server.properties`) |
 | `./gradlew runClient` | dev client, join `localhost` |
 | `./gradlew runData` | data generators into `src/generated/resources/` |
@@ -22,7 +22,7 @@ JDK 21 is selected by the Gradle toolchain. Create, Ponder, Flywheel and Registr
 |---|---|
 | `gradle.properties` | versions (Minecraft, NeoForge, Parchment, Create and its libraries) and mod metadata (`mod_id`, `mod_name`, `mod_version`) |
 | `build.gradle` | ModDevGradle setup, repositories, dependencies, run configurations |
-| `src/main/java/net/riftwatch/template/` | mod sources, entry point `TemplateMod` |
+| `src/main/java/net/riftwatch/rift_quests/` | mod sources, entry point `RiftQuestsMod` |
 | `src/main/templates/META-INF/neoforge.mods.toml` | mod metadata, expanded from `gradle.properties` |
 | `.github/workflows/deploy.yml` | build on every push; with `DEPLOY_ENABLED=true` deploy to the server and GitHub Release `v<version>` |
 
