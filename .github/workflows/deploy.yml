@@ -1,0 +1,116 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Build and deploy to the Riftwatch server
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the mod metadata
+        id: mod
+        env:
+          DEPLOY_ENABLED: ${{ vars.DEPLOY_ENABLED }}
+          IS_TEMPLATE: ${{ github.event.repository.is_template }}
+        run: |
+          mod_id="$(sed -n 's/^mod_id=//p' gradle.properties)"
+          mod_version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          deploy=false
+          if [ "$DEPLOY_ENABLED" = true ] && [ "$IS_TEMPLATE" != true ]; then
+            deploy=true
+          else
+            echo "::notice::Build only: deploy is off for this repository (DEPLOY_ENABLED is not true, or this is the template)."
+          fi
+          {
+            echo "id=$mod_id"
+            echo "version=$mod_version"
+            echo "jar=build/libs/$mod_id-$mod_version.jar"
+            echo "deploy=$deploy"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Refuse an existing version
+        if: steps.mod.outputs.deploy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.mod.outputs.version }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release $TAG exists already, raise mod_version in gradle.properties."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        env:
+          JAR: ${{ steps.mod.outputs.jar }}
+        run: |
+          ./gradlew build
+          test -f "$JAR"
+
+      - name: Configure SSH
+        if: steps.mod.outputs.deploy == 'true'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload release
+        if: steps.mod.outputs.deploy == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          MOD_ID: ${{ steps.mod.outputs.id }}
+          JAR: ${{ steps.mod.outputs.jar }}
+        run: >-
+          rsync -rlptz --mkpath
+          --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r
+          -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes"
+          "$JAR"
+          "$DEPLOY_USER@$DEPLOY_HOST:/srv/riftwatch/custom-mods/$MOD_ID/releases/$GITHUB_SHA/"
+
+      - name: Deploy on the server
+        if: steps.mod.outputs.deploy == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          MOD_ID: ${{ steps.mod.outputs.id }}
+        run: >-
+          ssh -i "$HOME/.ssh/deploy_key" -o IdentitiesOnly=yes
+          "$DEPLOY_USER@$DEPLOY_HOST"
+          sudo /usr/local/bin/riftwatch-mod-deploy "$MOD_ID" "$GITHUB_SHA"
+
+      - name: Publish the release
+        if: steps.mod.outputs.deploy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.mod.outputs.version }}
+          JAR: ${{ steps.mod.outputs.jar }}
+        run: >-
+          gh release create "$TAG" "$JAR"
+          --repo "$GITHUB_REPOSITORY"
+          --target "$GITHUB_SHA"
+          --title "$TAG"
+          --notes "Deployed to the Riftwatch server from $GITHUB_SHA."
