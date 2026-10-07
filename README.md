@@ -1,6 +1,8 @@
 # Riftwatch Quests
 
-Custom NeoForge mod `rift_quests` of the Riftwatch Minecraft server (Minecraft 1.21.1, NeoForge 21.1.255, Create 6.0.10). Private repository `Riftwatch-Official/riftwatch-mod-rift-quests`.
+Custom NeoForge mod `rift_quests` of the Riftwatch Minecraft server (Minecraft 1.21.1, NeoForge 21.1.255, Create 6.0.10). Public repository `Riftwatch-Official/riftwatch-mod-rift-quests`; all rights reserved, see `LICENSE` for the permitted use.
+
+The mod is the quest book of the Riftwatch modpack: the engine (data model, loader, validator, tasks, rewards, progress, screens and the Riftwatch Ticket) lives here, the quest content is a data pack built from the modpack repository.
 
 The development guide for all Riftwatch mods (environment, Test and Deploy mode, deploy flow, rollback) is `custom-mods/README.md` in the repository `Riftwatch-Official/riftwatch-server`. New mods are created with `scripts/new-mod.sh` there, never by copying a mod by hand.
 
