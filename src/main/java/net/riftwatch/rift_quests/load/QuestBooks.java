@@ -3,6 +3,8 @@ package net.riftwatch.rift_quests.load;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
 import net.riftwatch.rift_quests.book.QuestBook;
+import net.riftwatch.rift_quests.engine.QuestEngine;
+import net.riftwatch.rift_quests.engine.ServerBook;
 import org.slf4j.Logger;
 
 public final class QuestBooks {
@@ -34,6 +36,8 @@ public final class QuestBooks {
         LOGGER.info("Quest book: {} chapters and {} quests loaded, {} errors, {} warnings",
                 book.chapters().size(), book.quests().size(), book.errorCount(), book.warningCount());
         current = book;
+        ServerBook.rebuild(server, book);
+        QuestEngine.bookActivated(server);
         return book;
     }
 }
