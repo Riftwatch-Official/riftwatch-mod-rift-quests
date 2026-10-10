@@ -48,6 +48,7 @@ public final class ClientSetup {
             }
         });
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> ClientQuests.clear());
+        SealAnimation.init();
         ClientBridge.install(new ClientBridge.Handler() {
             @Override
             public void openBook() {
