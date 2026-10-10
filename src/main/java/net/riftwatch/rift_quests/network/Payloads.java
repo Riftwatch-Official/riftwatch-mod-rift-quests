@@ -93,6 +93,18 @@ public final class Payloads {
         }
     }
 
+    public record OrreryState(int mask) implements CustomPacketPayload {
+        public static final Type<OrreryState> TYPE = Payloads.typeOf("orrery_state");
+        public static final StreamCodec<RegistryFriendlyByteBuf, OrreryState> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeVarInt(payload.mask()),
+                buf -> new OrreryState(buf.readVarInt()));
+
+        @Override
+        public Type<OrreryState> type() {
+            return TYPE;
+        }
+    }
+
     public record OpenBook() implements CustomPacketPayload {
         public static final Type<OpenBook> TYPE = Payloads.typeOf("open_book");
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenBook> CODEC = StreamCodec.unit(new OpenBook());

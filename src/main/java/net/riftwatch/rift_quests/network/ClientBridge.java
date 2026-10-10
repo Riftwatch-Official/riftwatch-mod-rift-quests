@@ -9,6 +9,10 @@ public final class ClientBridge {
         void progress(Payloads.Progress payload);
 
         void questCompleted(Payloads.QuestCompleted payload);
+
+        void orrery(Payloads.OrreryState payload);
+
+        boolean orreryOpen();
     }
 
     private static final Handler NONE = new Handler() {
@@ -26,6 +30,15 @@ public final class ClientBridge {
 
         @Override
         public void questCompleted(Payloads.QuestCompleted payload) {
+        }
+
+        @Override
+        public void orrery(Payloads.OrreryState payload) {
+        }
+
+        @Override
+        public boolean orreryOpen() {
+            return false;
         }
     };
 

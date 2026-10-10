@@ -28,6 +28,7 @@ import net.riftwatch.rift_quests.book.Reward;
 import net.riftwatch.rift_quests.book.Task;
 import net.riftwatch.rift_quests.network.Payloads;
 import net.riftwatch.rift_quests.network.QuestState;
+import net.riftwatch.rift_quests.orrery.OrreryLogic;
 import net.riftwatch.rift_quests.progress.PlayerQuestData;
 import net.riftwatch.rift_quests.progress.QuestRecord;
 import net.riftwatch.rift_quests.registry.ModAttachments;
@@ -80,6 +81,7 @@ public final class QuestEngine {
             give(player, new ItemStack(ModItems.QUEST_BOOK.get()));
             data.markBookGiven();
         }
+        OrreryLogic.sync(player);
         invalidate(player);
     }
 

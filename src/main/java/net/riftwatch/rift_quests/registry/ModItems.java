@@ -4,6 +4,7 @@ import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -17,6 +18,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.riftwatch.rift_quests.RiftQuestsMod;
 import net.riftwatch.rift_quests.item.QuestBookItem;
 import net.riftwatch.rift_quests.item.SealItem;
+import net.riftwatch.rift_quests.item.SealOrreryItem;
 import net.riftwatch.rift_quests.item.TicketItem;
 
 public final class ModItems {
@@ -45,11 +47,23 @@ public final class ModItems {
                             .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)))
             .toList();
 
+    public static final DeferredItem<SealOrreryItem> SEAL_ORRERY = ITEMS.registerItem("seal_orrery",
+            properties -> new SealOrreryItem(ModBlocks.SEAL_ORRERY.get(), properties),
+            new Item.Properties().rarity(Rarity.EPIC).fireResistant());
+    public static final DeferredItem<BlockItem> SEAL_VEIL = ITEMS.registerSimpleBlockItem(ModBlocks.SEAL_VEIL,
+            new Item.Properties().rarity(Rarity.EPIC).fireResistant());
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SEAL_TAB = TABS.register("seals",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.rift_quests.seals"))
-                    .icon(() -> new ItemStack(SEALS.get(1).get()))
-                    .displayItems((parameters, output) -> SEALS.forEach(seal -> output.accept(seal.get())))
+                    .icon(() -> new ItemStack(RIFTWATCH_TICKET.get()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(RIFTWATCH_TICKET.get());
+                        output.accept(QUEST_BOOK.get());
+                        output.accept(SEAL_ORRERY.get());
+                        output.accept(SEAL_VEIL.get());
+                        SEALS.forEach(seal -> output.accept(seal.get()));
+                    })
                     .build());
 
     private ModItems() {

@@ -25,7 +25,7 @@ public sealed interface Task {
         BREED
     }
 
-    record Item(List<IdRef> items, int count, ItemMode mode, Optional<JsonElement> components, boolean distinct) implements Task {
+    record Item(List<IdRef> items, int count, ItemMode mode, Optional<JsonElement> components, boolean distinct, boolean ownerBound) implements Task {
     }
 
     record Advancement(List<ResourceLocation> advancements, boolean all) implements Task {

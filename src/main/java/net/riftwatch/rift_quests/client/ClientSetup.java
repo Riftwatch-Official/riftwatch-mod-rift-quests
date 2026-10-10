@@ -12,6 +12,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
@@ -23,6 +24,7 @@ import net.riftwatch.rift_quests.RiftQuestsMod;
 import net.riftwatch.rift_quests.network.BookView;
 import net.riftwatch.rift_quests.network.ClientBridge;
 import net.riftwatch.rift_quests.network.Payloads;
+import net.riftwatch.rift_quests.registry.ModBlocks;
 import org.slf4j.Logger;
 
 public final class ClientSetup {
@@ -42,12 +44,18 @@ public final class ClientSetup {
         modEventBus.addListener(RegisterKeyMappingsEvent.class, event -> event.register(OPEN_BOOK));
         modEventBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerAbove(VanillaGuiLayers.SCOREBOARD_SIDEBAR,
                 ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "tracker"), QuestTracker::render));
+        modEventBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
+                event -> event.registerBlockEntityRenderer(ModBlocks.SEAL_ORRERY_ENTITY.get(), context -> new SealOrreryRenderer()));
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
+            ClientOrrery.tick();
             while (OPEN_BOOK.consumeClick()) {
                 openBook();
             }
         });
-        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> ClientQuests.clear());
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
+            ClientQuests.clear();
+            ClientOrrery.clear();
+        });
         SealAnimation.init();
         ClientBridge.install(new ClientBridge.Handler() {
             @Override
@@ -73,6 +81,16 @@ public final class ClientSetup {
             @Override
             public void progress(Payloads.Progress payload) {
                 ClientQuests.setProgress(payload);
+            }
+
+            @Override
+            public void orrery(Payloads.OrreryState payload) {
+                ClientOrrery.setMask(payload.mask());
+            }
+
+            @Override
+            public boolean orreryOpen() {
+                return ClientOrrery.open();
             }
 
             @Override

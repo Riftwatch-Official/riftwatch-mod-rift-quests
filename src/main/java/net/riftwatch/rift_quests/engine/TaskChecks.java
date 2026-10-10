@@ -24,6 +24,7 @@ import net.minecraft.world.phys.Vec3;
 import net.riftwatch.rift_quests.book.IdRef;
 import net.riftwatch.rift_quests.book.QuestTask;
 import net.riftwatch.rift_quests.book.Task;
+import net.riftwatch.rift_quests.item.SealOwner;
 import net.riftwatch.rift_quests.progress.QuestRecord;
 
 public final class TaskChecks {
@@ -55,7 +56,7 @@ public final class TaskChecks {
             for (IdRef ref : item.items()) {
                 for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
                     ItemStack stack = inventory.getItem(slot);
-                    if (Matchers.item(ref, stack) && (item.components().isEmpty() || Matchers.components(item.components().get(), stack))) {
+                    if (Matchers.item(ref, stack) && (item.components().isEmpty() || Matchers.components(item.components().get(), stack)) && ownedBy(item, player, stack)) {
                         found++;
                         break;
                     }
@@ -66,11 +67,15 @@ public final class TaskChecks {
         long total = 0;
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (Matchers.item(item.items(), item.components(), stack)) {
+            if (Matchers.item(item.items(), item.components(), stack) && ownedBy(item, player, stack)) {
                 total += stack.getCount();
             }
         }
         return total;
+    }
+
+    private static boolean ownedBy(Task.Item item, ServerPlayer player, ItemStack stack) {
+        return !item.ownerBound() || SealOwner.isBoundTo(stack, player.getUUID());
     }
 
     private static long advancements(ServerPlayer player, Task.Advancement task) {

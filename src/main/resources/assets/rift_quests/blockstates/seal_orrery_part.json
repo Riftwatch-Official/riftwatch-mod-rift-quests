@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "rift_quests:block/orrery_empty"
+      }
+    }
+  ]
+}

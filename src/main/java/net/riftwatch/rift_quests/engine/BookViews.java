@@ -124,6 +124,9 @@ public final class BookViews {
                 } else {
                     label = Component.literal(verbFor(item.mode()) + item.count() + "x ").append(what);
                 }
+                if (item.ownerBound()) {
+                    details.add(Component.literal("Must be bound to you: take it from its chest yourself"));
+                }
                 if (item.mode() != Task.ItemMode.DETECT) {
                     action = BookView.TaskAction.SUBMIT;
                 }

@@ -358,7 +358,12 @@ public final class QuestBookParser {
         Task.ItemMode mode = fields.enumValue("mode", Task.ItemMode.class, false).orElse(Task.ItemMode.DETECT);
         Optional<JsonObject> components = fields.objectValue("components", false);
         Optional<Boolean> distinct = fields.bool("distinct");
+        Optional<Boolean> ownerBound = fields.bool("owner_bound");
         if (items.isEmpty()) {
+            return Optional.empty();
+        }
+        if (ownerBound.orElse(false) && mode != Task.ItemMode.DETECT) {
+            fields.error("owner_bound", "is only allowed with mode detect");
             return Optional.empty();
         }
         if (components.isPresent() && (items.get().size() != 1 || items.get().getFirst().tag())) {
@@ -373,7 +378,7 @@ public final class QuestBookParser {
             fields.error("count", "cannot be larger than the number of listed items when distinct is true");
             return Optional.empty();
         }
-        return Optional.of(new Task.Item(items.get(), count, mode, components.map(value -> (JsonElement) value), distinct.orElse(false)));
+        return Optional.of(new Task.Item(items.get(), count, mode, components.map(value -> (JsonElement) value), distinct.orElse(false), ownerBound.orElse(false)));
     }
 
     private static Optional<Task> blockTask(Fields fields, Task.BlockAction action) {

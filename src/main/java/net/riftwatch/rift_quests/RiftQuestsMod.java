@@ -20,7 +20,10 @@ import net.riftwatch.rift_quests.load.QuestBookLoader;
 import net.riftwatch.rift_quests.load.QuestBooks;
 import net.riftwatch.rift_quests.network.ModNetwork;
 import net.riftwatch.rift_quests.registry.ModAttachments;
+import net.riftwatch.rift_quests.registry.ModBlocks;
+import net.riftwatch.rift_quests.registry.ModComponents;
 import net.riftwatch.rift_quests.registry.ModItems;
+import net.riftwatch.rift_quests.registry.ModLoot;
 import org.slf4j.Logger;
 
 @Mod(RiftQuestsMod.MOD_ID)
@@ -30,6 +33,9 @@ public final class RiftQuestsMod {
 
     public RiftQuestsMod(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("{} {} loaded", modContainer.getModInfo().getDisplayName(), modContainer.getModInfo().getVersion());
+        ModComponents.register(modEventBus);
+        ModLoot.register(modEventBus);
+        ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModAttachments.register(modEventBus);
         ModNetwork.register(modEventBus);

@@ -18,6 +18,7 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.riftwatch.rift_quests.book.Quest;
 import net.riftwatch.rift_quests.book.QuestBook;
@@ -26,8 +27,10 @@ import net.riftwatch.rift_quests.engine.ServerBook;
 import net.riftwatch.rift_quests.load.Problem;
 import net.riftwatch.rift_quests.load.QuestBooks;
 import net.riftwatch.rift_quests.network.Payloads;
+import net.riftwatch.rift_quests.orrery.OrreryLogic;
 import net.riftwatch.rift_quests.network.QuestState;
 import net.riftwatch.rift_quests.progress.PlayerQuestData;
+import net.riftwatch.rift_quests.registry.ModItems;
 
 public final class RiftQuestsCommand {
     private static final int SHOWN_PROBLEMS = 8;
@@ -39,7 +42,34 @@ public final class RiftQuestsCommand {
         return quest == null ? builder.buildFuture() : SharedSuggestionProvider.suggest(quest.tasks().stream().map(task -> task.key()), builder);
     };
 
+    private static final DynamicCommandExceptionType UNKNOWN_DISTRICT = new DynamicCommandExceptionType(slug -> Component.literal("Unknown district " + slug));
+    private static final SuggestionProvider<CommandSourceStack> DISTRICTS = (context, builder) -> SharedSuggestionProvider.suggest(ModItems.SEAL_DISTRICTS, builder);
+
     private RiftQuestsCommand() {
+    }
+
+    private static int giveSeal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        String slug = StringArgumentType.getString(context, "district");
+        int index = ModItems.SEAL_DISTRICTS.indexOf(slug);
+        if (index < 0) {
+            throw UNKNOWN_DISTRICT.create(slug);
+        }
+        Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        for (ServerPlayer player : targets) {
+            ItemStack seal = ModItems.SEALS.get(index).get().boundTo(player);
+            if (!player.getInventory().add(seal)) {
+                player.drop(seal, false);
+            }
+        }
+        context.getSource().sendSuccess(() -> Component.literal("Gave the seal of " + slug + " to " + targets.size() + " players"), true);
+        return targets.size();
+    }
+
+    private static int resetOrrery(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
+        targets.forEach(OrreryLogic::reset);
+        context.getSource().sendSuccess(() -> Component.literal("Cleared the orrery seals of " + targets.size() + " players"), true);
+        return targets.size();
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -66,6 +96,12 @@ public final class RiftQuestsCommand {
                                 .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::reset))))
                 .then(Commands.literal("resetall").requires(RiftQuestsCommand::admin)
                         .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::resetAll)))
+                .then(Commands.literal("seal").requires(RiftQuestsCommand::admin)
+                        .then(Commands.literal("give")
+                                .then(Commands.argument("district", StringArgumentType.word()).suggests(DISTRICTS)
+                                        .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::giveSeal))))
+                        .then(Commands.literal("reset")
+                                .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::resetOrrery))))
                 .then(Commands.literal("status").requires(RiftQuestsCommand::admin)
                         .then(Commands.argument("player", EntityArgument.player()).executes(RiftQuestsCommand::status)))
                 .then(Commands.literal("progress").requires(RiftQuestsCommand::admin)

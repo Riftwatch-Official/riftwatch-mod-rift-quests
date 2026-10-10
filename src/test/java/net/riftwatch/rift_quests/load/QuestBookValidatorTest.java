@@ -197,6 +197,20 @@ class QuestBookValidatorTest {
     }
 
     @Test
+    void ownerBoundRules() {
+        chapter()
+                .file("quests/kinetics/consume", questAt(0, "").replace("\"item\": \"minecraft:stone\"",
+                        "\"item\": \"minecraft:stone\", \"mode\": \"consume\", \"owner_bound\": true"))
+                .file("quests/kinetics/good", questAt(1, "").replace("\"item\": \"minecraft:stone\"",
+                        "\"item\": \"minecraft:stone\", \"owner_bound\": true"))
+                .file("quests/kinetics/plain", questAt(2, ""));
+        QuestBook book = build();
+        assertTrue(hasProblem(book, "consume.json", "only allowed with mode detect"));
+        assertTrue(((Task.Item) book.quests().get(id("kinetics/good")).tasks().getFirst().task()).ownerBound());
+        assertFalse(((Task.Item) book.quests().get(id("kinetics/plain")).tasks().getFirst().task()).ownerBound());
+    }
+
+    @Test
     void rewardRules() {
         chapter()
                 .file("quests/kinetics/nested", questAt(0, ", \"rewards\": {\"pick\": {\"type\": \"choice\", \"options\": ["

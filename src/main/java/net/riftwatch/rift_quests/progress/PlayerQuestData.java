@@ -20,6 +20,7 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
     private final Map<ResourceLocation, QuestRecord> quests = new HashMap<>();
     private final List<ResourceLocation> pinned = new ArrayList<>();
     private boolean bookGiven;
+    private int orreryMask;
 
     public Optional<QuestRecord> find(ResourceLocation quest) {
         return Optional.ofNullable(quests.get(quest));
@@ -77,6 +78,22 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
         return true;
     }
 
+    public int orreryMask() {
+        return orreryMask;
+    }
+
+    public boolean hasOrrerySeal(int bit) {
+        return (orreryMask & (1 << bit)) != 0;
+    }
+
+    public void insertOrrerySeal(int bit) {
+        orreryMask |= 1 << bit;
+    }
+
+    public void clearOrrery() {
+        orreryMask = 0;
+    }
+
     public boolean bookGiven() {
         return bookGiven;
     }
@@ -100,6 +117,7 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
         pinned.forEach(id -> pinnedTag.add(StringTag.valueOf(id.toString())));
         tag.put("pinned", pinnedTag);
         tag.putBoolean("book_given", bookGiven);
+        tag.putInt("orrery_seals", orreryMask);
         return tag;
     }
 
@@ -122,5 +140,6 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
             }
         }
         bookGiven = tag.getBoolean("book_given");
+        orreryMask = tag.getInt("orrery_seals");
     }
 }
