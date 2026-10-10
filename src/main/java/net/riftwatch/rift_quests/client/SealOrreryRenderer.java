@@ -37,7 +37,6 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
     private static final int LEVEL_OFF = 0x8A7458;
     private static final float SLOT_DIM = 0.45F;
     private static final float SEAL_SIZE = 1.05F;
-    private static final float SEAL_OFFSET = 0.06F;
     private static final int LIGHT_SAMPLE_HEIGHT = 8;
     private static final float LIGHT_BOX_MARGIN = 1.04F;
     private static final float[] HALO_SCALES = {1.35F, 1.9F, 2.7F};
@@ -100,7 +99,6 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
             poseStack.pushPose();
             poseStack.translate(socket.center()[0], socket.center()[1], socket.center()[2]);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) socket.yaw() + 180F));
-            poseStack.translate(0F, 0F, -SEAL_OFFSET * scale);
             float size = SEAL_SIZE * scale * glow;
             poseStack.scale(size, size, size);
             Minecraft.getInstance().getItemRenderer().renderStatic(stacks.get(index), ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,

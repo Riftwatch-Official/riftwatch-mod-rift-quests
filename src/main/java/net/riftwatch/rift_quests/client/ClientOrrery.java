@@ -7,8 +7,8 @@ public final class ClientOrrery {
     private static final float SECONDS_PER_TICK = 0.05F;
     private static final float GLOW_EASE = 0.25F;
     private static final float BASE_SPEED = 0.3F;
-    private static final float SPEED_PER_SEAL = 0.18F;
-    private static final float OPEN_SPEED = 6.5F;
+    private static final float SPEED_PER_SEAL = 0.3F;
+    private static final float OPEN_SPEED = 14F;
     private static final float SPEED_EASE = 0.06F;
     private static final float BURST_EASE = 0.035F;
     private static final float[] GLOW = new float[OrreryLogic.SEAL_COUNT];
