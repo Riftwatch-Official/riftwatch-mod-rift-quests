@@ -2,22 +2,29 @@ package net.riftwatch.rift_quests.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.riftwatch.rift_quests.RiftQuestsMod;
 import net.riftwatch.rift_quests.block.SealOrreryBlockEntity;
 import net.riftwatch.rift_quests.orrery.OrrerySpec;
 import net.riftwatch.rift_quests.orrery.OrreryStructure;
+import net.riftwatch.rift_quests.registry.ModItems;
 import org.joml.Quaternionf;
 
 public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryBlockEntity> {
@@ -26,10 +33,21 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
     private static final int WARM = 0xFFE2B0;
     private static final int GEM_DARK = 0x3A3632;
     private static final int SHAFT_COLOUR = 0xFFE2B0;
-    private static final float SHAFT_Y = 5.2F;
+    private static final float SEAL_SIZE = 1.05F;
+    private static final float SEAL_OFFSET = 0.06F;
+    private static final float[] HALO_RADII = {1.3F, 1.75F, 2.4F};
+    private static final int[] HALO_ALPHA = {110, 55, 26};
     private static final String PLATE_SUFFIX = "_plate";
     private static final String PILLAR_PREFIX = "pillar_";
     private static final Map<String, ResourceLocation> TEXTURES = new HashMap<>();
+    private static List<ItemStack> sealStacks;
+
+    private static List<ItemStack> sealStacks() {
+        if (sealStacks == null) {
+            sealStacks = ModItems.SEALS.stream().map(seal -> seal.get().getDefaultInstance()).toList();
+        }
+        return sealStacks;
+    }
 
     private static ResourceLocation texture(String material) {
         return TEXTURES.computeIfAbsent(material,
@@ -43,7 +61,7 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
         }
         OrrerySpec spec = OrrerySpec.get();
         int[] anchor = spec.controller();
-        int light = LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above(4));
+        int light = LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above((int) Math.round(4 * spec.scale())));
         float seconds = ClientOrrery.seconds(partialTick);
         poseStack.pushPose();
         poseStack.translate(-anchor[0], -anchor[1], -anchor[2]);
@@ -57,8 +75,31 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
                 }
             }
         }
+        drawSeals(spec, blockEntity.getLevel(), poseStack, buffer, blockEntity.getBlockPos().hashCode());
         drawBeams(spec, poseStack, buffer, seconds);
         poseStack.popPose();
+    }
+
+    private static void drawSeals(OrrerySpec spec, Level level, PoseStack poseStack, MultiBufferSource buffer, int seed) {
+        List<OrrerySpec.Socket> sockets = spec.sockets();
+        List<ItemStack> stacks = sealStacks();
+        float scale = (float) spec.scale();
+        for (int index = 0; index < sockets.size(); index++) {
+            float glow = ClientOrrery.glow(index);
+            if (glow < 0.05F) {
+                continue;
+            }
+            OrrerySpec.Socket socket = sockets.get(index);
+            poseStack.pushPose();
+            poseStack.translate(socket.center()[0], socket.center()[1], socket.center()[2]);
+            poseStack.mulPose(Axis.YP.rotationDegrees((float) socket.yaw() + 180F));
+            poseStack.translate(0F, 0F, -SEAL_OFFSET * scale);
+            float size = SEAL_SIZE * scale * glow;
+            poseStack.scale(size, size, size);
+            Minecraft.getInstance().getItemRenderer().renderStatic(stacks.get(index), ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
+                    OverlayTexture.NO_OVERLAY, poseStack, buffer, level, seed + index);
+            poseStack.popPose();
+        }
     }
 
     private static int socketIndex(OrrerySpec spec, String id) {
@@ -119,14 +160,24 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
 
     private static void drawCore(OrrerySpec.Part part, PoseStack poseStack, MultiBufferSource buffer, float seconds) {
         float level = ClientOrrery.level();
-        boolean open = ClientOrrery.open();
-        float pulse = open ? 0.12F + 0.05F * Mth.sin(seconds * 7F) : 0.04F * Mth.sin(seconds * 2F);
-        int rgb = mix(0x000000, WARM, 0.35F + 0.65F * level + (open ? 0.2F * Mth.sin(seconds * 5F) : 0F));
+        float burst = ClientOrrery.burst();
+        float pulse = 0.04F * Mth.sin(seconds * 2F) * (1F - burst) + burst * (0.1F + 0.04F * Mth.sin(seconds * 7F));
+        int rgb = mix(mix(0x000000, WARM, 0.35F + 0.65F * level), WHITE, burst);
         poseStack.pushPose();
         poseStack.translate(part.center()[0], part.center()[1], part.center()[2]);
         poseStack.scale(1F + pulse, 1F + pulse, 1F + pulse);
-        OrreryMesh.sphere(buffer.getBuffer(RenderType.entityCutoutNoCull(texture(part.material()))), poseStack.last(),
-                (float) part.radius(), 14, 20, rgb, LightTexture.FULL_BRIGHT);
+        if (burst < 0.95F) {
+            OrreryMesh.sphere(buffer.getBuffer(RenderType.entityCutoutNoCull(texture(part.material()))), poseStack.last(),
+                    (float) part.radius(), 14, 20, rgb, LightTexture.FULL_BRIGHT);
+        }
+        if (burst > 0.02F) {
+            VertexConsumer light = buffer.getBuffer(RenderType.lightning());
+            OrreryMesh.glowSphere(light, poseStack.last(), (float) part.radius() * 1.02F, 14, 24, WHITE, Math.round(255 * Mth.clamp(burst * 1.4F, 0F, 1F)));
+            for (int halo = 0; halo < HALO_RADII.length; halo++) {
+                float breathe = 1F + 0.06F * Mth.sin(seconds * (3F + halo) + halo);
+                OrreryMesh.glowSphere(light, poseStack.last(), (float) part.radius() * HALO_RADII[halo] * breathe, 12, 20, WARM, Math.round(HALO_ALPHA[halo] * burst));
+            }
+        }
         poseStack.popPose();
     }
 
@@ -145,7 +196,7 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
                 double a = index * 2 * Math.PI / part.gems();
                 float glow = index < spec.sockets().size() ? ClientOrrery.glow(index) : 0F;
                 int colour = index < spec.sockets().size() ? spec.sockets().get(index).colour() : WHITE;
-                OrreryMesh.gem(gems, poseStack.last(), (float) (part.radius() * Math.cos(a)), (float) (part.radius() * Math.sin(a)),
+                OrreryMesh.gem(gems, poseStack.last(), (float) (part.radius() * Math.cos(a)), (float) (part.radius() * Math.sin(a)), (float) spec.scale(),
                         mix(GEM_DARK, colour, glow), glow > 0.05F ? LightTexture.FULL_BRIGHT : light);
             }
         }
@@ -171,14 +222,17 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
             poseStack.translate((start[0] + core[0]) / 2, (start[1] + core[1]) / 2, (start[2] + core[2]) / 2);
             poseStack.mulPose(new Quaternionf().rotationYXZ((float) Math.atan2(dx, dz), (float) -Math.asin(dy / length), 0F));
             int alpha = Math.round(255 * glow * (0.55F + 0.25F * Mth.sin(seconds * 4F + index)));
-            OrreryMesh.glowBox(beams, poseStack.last(), 0.035F, 0.035F, (float) length / 2, sockets.get(index).colour(), Mth.clamp(alpha, 0, 255));
+            float thickness = 0.035F * (float) spec.scale();
+            OrreryMesh.glowBox(beams, poseStack.last(), thickness, thickness, (float) length / 2, sockets.get(index).colour(), Mth.clamp(alpha, 0, 255));
             poseStack.popPose();
         }
         if (level > 0F) {
             float pulse = ClientOrrery.open() ? 0.12F + 0.06F * Mth.sin(seconds * 6F) : 0F;
             poseStack.pushPose();
-            poseStack.translate(core[0], SHAFT_Y, core[2]);
-            OrreryMesh.glowBox(beams, poseStack.last(), 0.14F, 1.6F, 0.14F, SHAFT_COLOUR, Mth.clamp(Math.round(255 * (level * 0.35F + pulse)), 0, 255));
+            double[] shaft = spec.shaft();
+            float width = 0.14F * (float) spec.scale();
+            poseStack.translate(core[0], shaft[0], core[2]);
+            OrreryMesh.glowBox(beams, poseStack.last(), width, (float) shaft[1], width, SHAFT_COLOUR, Mth.clamp(Math.round(255 * (level * 0.35F + pulse)), 0, 255));
             poseStack.popPose();
         }
     }

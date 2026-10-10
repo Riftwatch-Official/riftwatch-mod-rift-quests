@@ -22,19 +22,23 @@ public final class OrrerySpec {
                        double[] axis, double dps, int gems) {
     }
 
-    public record Socket(String id, double[] center, int colour) {
+    public record Socket(String id, double[] center, int colour, double yaw) {
     }
 
     private final int[] controller;
     private final int[] size;
     private final double[] core;
+    private final double[] shaft;
+    private final double scale;
     private final List<Part> parts;
     private final List<Socket> sockets;
 
-    private OrrerySpec(int[] controller, int[] size, double[] core, List<Part> parts, List<Socket> sockets) {
+    private OrrerySpec(int[] controller, int[] size, double[] core, double[] shaft, double scale, List<Part> parts, List<Socket> sockets) {
         this.controller = controller;
         this.size = size;
         this.core = core;
+        this.shaft = shaft;
+        this.scale = scale;
         this.parts = parts;
         this.sockets = sockets;
     }
@@ -53,6 +57,14 @@ public final class OrrerySpec {
 
     public double[] core() {
         return core;
+    }
+
+    public double[] shaft() {
+        return shaft;
+    }
+
+    public double scale() {
+        return scale;
     }
 
     public List<Part> parts() {
@@ -87,10 +99,10 @@ public final class OrrerySpec {
         for (int index = 0; index < socketArray.size(); index++) {
             JsonObject socket = socketArray.get(index).getAsJsonObject();
             String colour = districts.get(index).getAsJsonObject().get("colour").getAsString();
-            sockets.add(new Socket(socket.get("id").getAsString(), doubles(socket.getAsJsonArray("center")), Integer.parseInt(colour.substring(1), 16)));
+            sockets.add(new Socket(socket.get("id").getAsString(), doubles(socket.getAsJsonArray("center")), Integer.parseInt(colour.substring(1), 16), socket.get("yaw").getAsDouble()));
         }
         return new OrrerySpec(ints(root.getAsJsonArray("controller")), ints(root.getAsJsonArray("size")),
-                doubles(root.getAsJsonArray("core")), List.copyOf(parts), List.copyOf(sockets));
+                doubles(root.getAsJsonArray("core")), doubles(root.getAsJsonArray("shaft")), root.get("scale").getAsDouble(), List.copyOf(parts), List.copyOf(sockets));
     }
 
     private static Part part(JsonObject json) {

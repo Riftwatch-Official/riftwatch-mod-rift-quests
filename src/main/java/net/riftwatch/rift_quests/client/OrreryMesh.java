@@ -125,9 +125,28 @@ final class OrreryMesh {
         }
     }
 
-    static void gem(VertexConsumer consumer, PoseStack.Pose pose, float x, float z, int rgb, int light) {
-        float rx = 0.3F;
-        float ry = 0.36F;
+    static void glowSphere(VertexConsumer consumer, PoseStack.Pose pose, float radius, int rings, int segments, int rgb, int alpha) {
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        for (int ring = 0; ring < rings; ring++) {
+            double t0 = ring * Math.PI / rings;
+            double t1 = (ring + 1) * Math.PI / rings;
+            for (int segment = 0; segment < segments; segment++) {
+                double p0 = segment * 2 * Math.PI / segments;
+                double p1 = (segment + 1) * 2 * Math.PI / segments;
+                double[][] corners = {{t0, p0}, {t0, p1}, {t1, p1}, {t1, p0}, {t1, p0}, {t1, p1}, {t0, p1}, {t0, p0}};
+                for (double[] corner : corners) {
+                    consumer.addVertex(pose, (float) (radius * Math.sin(corner[0]) * Math.cos(corner[1])), (float) (radius * Math.cos(corner[0])),
+                            (float) (radius * Math.sin(corner[0]) * Math.sin(corner[1]))).setColor(r, g, b, alpha);
+                }
+            }
+        }
+    }
+
+    static void gem(VertexConsumer consumer, PoseStack.Pose pose, float x, float z, float size, int rgb, int light) {
+        float rx = 0.3F * size;
+        float ry = 0.36F * size;
         for (int sx = -1; sx <= 1; sx += 2) {
             for (int sy = -1; sy <= 1; sy += 2) {
                 for (int sz = -1; sz <= 1; sz += 2) {

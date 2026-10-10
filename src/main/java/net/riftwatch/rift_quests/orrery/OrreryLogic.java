@@ -131,11 +131,12 @@ public final class OrreryLogic {
         double y = origin.getY() + centre[1];
         double z = origin.getZ() + centre[2];
         ServerLevel level = player.serverLevel();
-        level.sendParticles(player, ParticleTypes.END_ROD, false, x, y, z, 14, 0.2, 0.3, 0.2, 0.02);
+        double scale = OrrerySpec.get().scale();
+        level.sendParticles(player, ParticleTypes.END_ROD, false, x, y, z, 14, 0.2 * scale, 0.3 * scale, 0.2 * scale, 0.02);
         player.playNotifySound(SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0F, 0.8F + 0.05F * bit);
         if (last) {
             double[] core = OrrerySpec.get().core();
-            level.sendParticles(player, ParticleTypes.FIREWORK, false, origin.getX() + core[0], origin.getY() + core[1], origin.getZ() + core[2], 60, 0.8, 0.8, 0.8, 0.08);
+            level.sendParticles(player, ParticleTypes.FIREWORK, false, origin.getX() + core[0], origin.getY() + core[1], origin.getZ() + core[2], 120, 0.8 * scale, 0.8 * scale, 0.8 * scale, 0.1);
             player.playNotifySound(SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
