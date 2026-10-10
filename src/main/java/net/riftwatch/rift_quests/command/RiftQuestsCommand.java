@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -43,25 +44,32 @@ public final class RiftQuestsCommand {
     };
 
     private static final DynamicCommandExceptionType UNKNOWN_DISTRICT = new DynamicCommandExceptionType(slug -> Component.literal("Unknown district " + slug));
-    private static final SuggestionProvider<CommandSourceStack> DISTRICTS = (context, builder) -> SharedSuggestionProvider.suggest(ModItems.SEAL_DISTRICTS, builder);
+    private static final String ALL_DISTRICTS = "all";
+    private static final SuggestionProvider<CommandSourceStack> DISTRICTS = (context, builder) ->
+            SharedSuggestionProvider.suggest(Stream.concat(Stream.of(ALL_DISTRICTS), ModItems.SEAL_DISTRICTS.stream()), builder);
 
     private RiftQuestsCommand() {
     }
 
     private static int giveSeal(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String slug = StringArgumentType.getString(context, "district");
+        boolean all = ALL_DISTRICTS.equals(slug);
         int index = ModItems.SEAL_DISTRICTS.indexOf(slug);
-        if (index < 0) {
+        if (!all && index < 0) {
             throw UNKNOWN_DISTRICT.create(slug);
         }
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         for (ServerPlayer player : targets) {
-            ItemStack seal = ModItems.SEALS.get(index).get().boundTo(player);
-            if (!player.getInventory().add(seal)) {
-                player.drop(seal, false);
+            for (int seal = 0; seal < ModItems.SEALS.size(); seal++) {
+                if (all || seal == index) {
+                    ItemStack stack = ModItems.SEALS.get(seal).get().boundTo(player);
+                    if (!player.getInventory().add(stack)) {
+                        player.drop(stack, false);
+                    }
+                }
             }
         }
-        context.getSource().sendSuccess(() -> Component.literal("Gave the seal of " + slug + " to " + targets.size() + " players"), true);
+        context.getSource().sendSuccess(() -> Component.literal("Gave " + (all ? "all seals" : "the seal of " + slug) + " to " + targets.size() + " players"), true);
         return targets.size();
     }
 
