@@ -11,11 +11,13 @@ public final class ClientOrrery {
     private static final float OPEN_SPEED = 14F;
     private static final float SPEED_EASE = 0.06F;
     private static final float BURST_EASE = 0.035F;
+    private static final float LIT_EASE = 0.05F;
     private static final float[] GLOW = new float[OrreryLogic.SEAL_COUNT];
     private static int mask;
     private static float phase;
     private static float currentSpeed = BASE_SPEED;
     private static float burst;
+    private static float lit;
     private static long ticks;
 
     private ClientOrrery() {
@@ -30,6 +32,7 @@ public final class ClientOrrery {
         phase = 0;
         currentSpeed = BASE_SPEED;
         burst = 0;
+        lit = 0;
         Arrays.fill(GLOW, 0);
     }
 
@@ -42,7 +45,7 @@ public final class ClientOrrery {
     }
 
     public static float level() {
-        return count() / (float) OrreryLogic.SEAL_COUNT;
+        return lit;
     }
 
     public static boolean has(int index) {
@@ -69,6 +72,7 @@ public final class ClientOrrery {
         ticks++;
         currentSpeed += (targetSpeed() - currentSpeed) * SPEED_EASE;
         burst += ((open() ? 1F : 0F) - burst) * BURST_EASE;
+        lit += ((open() ? 1F : 0F) - lit) * LIT_EASE;
         phase += currentSpeed * SECONDS_PER_TICK;
         for (int index = 0; index < GLOW.length; index++) {
             float target = (mask & (1 << index)) != 0 ? 1F : 0F;

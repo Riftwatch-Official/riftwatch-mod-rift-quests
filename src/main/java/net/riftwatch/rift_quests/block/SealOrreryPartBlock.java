@@ -2,6 +2,8 @@ package net.riftwatch.rift_quests.block;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -42,6 +44,18 @@ public final class SealOrreryPartBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(SHAPE);
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (OrreryStructure.isOrphan(level, pos, state.getValue(SHAPE))) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }
     }
 
     @Override
@@ -86,7 +100,7 @@ public final class SealOrreryPartBlock extends Block {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         return OrreryStructure.controllerOf(level, pos, state.getValue(SHAPE))
-                .map(controller -> OrreryInteraction.useItem(stack, level, controller, player))
+                .map(controller -> OrreryInteraction.useItem(stack, level, controller, player, hitResult.getLocation()))
                 .orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
     }
 

@@ -134,12 +134,12 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
     private static Look look(String tint, int socket, OrrerySpec spec, int light) {
         switch (tint) {
             case "colour" -> {
-                float glow = socket >= 0 ? ClientOrrery.glow(socket) : 0F;
+                float glow = socket >= 0 ? ClientOrrery.level() : 0F;
                 int colour = socket >= 0 ? spec.sockets().get(socket).colour() : WHITE;
                 return new Look(mix(mix(BLACK, colour, SLOT_DIM), colour, glow), glow > 0.05F ? LightTexture.FULL_BRIGHT : light);
             }
             case "conduit" -> {
-                float glow = socket >= 0 ? ClientOrrery.glow(socket) : 0F;
+                float glow = socket >= 0 ? ClientOrrery.level() : 0F;
                 return new Look(mix(CONDUIT_OFF, CONDUIT_ON, glow), glow > 0.05F ? LightTexture.FULL_BRIGHT : light);
             }
             case "level" -> {

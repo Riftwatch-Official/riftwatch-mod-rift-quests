@@ -64,6 +64,41 @@ public final class OrreryStructure {
         }
     }
 
+    public static boolean isOrphan(Level level, BlockPos part, int shape) {
+        for (OrreryShapes.Cell cell : OrreryShapes.get().cellsOfShape(shape)) {
+            BlockPos candidate = part.offset(-cell.x(), -cell.y(), -cell.z());
+            if (!level.isLoaded(candidate) || level.getBlockState(candidate).is(ModBlocks.SEAL_ORRERY.get())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void removeStrays(Level level, BlockPos controller) {
+        if (!level.isLoaded(controller) || !level.getBlockState(controller).is(ModBlocks.SEAL_ORRERY.get())) {
+            return;
+        }
+        BlockState air = Blocks.AIR.defaultBlockState();
+        BlockPos origin = origin(controller);
+        int[] size = size();
+        for (int x = 0; x < size[0]; x++) {
+            for (int y = 0; y < size[1]; y++) {
+                for (int z = 0; z < size[2]; z++) {
+                    BlockPos pos = origin.offset(x, y, z);
+                    if (!level.isLoaded(pos)) {
+                        continue;
+                    }
+                    BlockState current = level.getBlockState(pos);
+                    if (current.is(ModBlocks.SEAL_ORRERY_PART.get())
+                            && current.getValue(SealOrreryPartBlock.SHAPE) != OrreryShapes.get().shapeAt(pos.getX() - controller.getX(), pos.getY() - controller.getY(), pos.getZ() - controller.getZ())
+                            && isOrphan(level, pos, current.getValue(SealOrreryPartBlock.SHAPE))) {
+                        level.setBlock(pos, air, PLACE_FLAGS);
+                    }
+                }
+            }
+        }
+    }
+
     public static Optional<BlockPos> controllerOf(BlockGetter level, BlockPos part, int shape) {
         for (OrreryShapes.Cell cell : OrreryShapes.get().cellsOfShape(shape)) {
             BlockPos candidate = part.offset(-cell.x(), -cell.y(), -cell.z());

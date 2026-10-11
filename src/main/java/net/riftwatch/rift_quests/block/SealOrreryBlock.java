@@ -82,7 +82,7 @@ public final class SealOrreryBlock extends BaseEntityBlock {
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        return OrreryInteraction.useItem(stack, level, pos, player);
+        return OrreryInteraction.useItem(stack, level, pos, player, hitResult.getLocation());
     }
 
     @Override

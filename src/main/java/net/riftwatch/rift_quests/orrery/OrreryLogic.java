@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.riftwatch.rift_quests.book.Quest;
 import net.riftwatch.rift_quests.engine.QuestEngine;
@@ -31,6 +32,7 @@ public final class OrreryLogic {
     private static final String QUEST_FOLDER = "district_seals/";
     private static final String GATE_QUEST = "all_seals";
     private static final String GATE_TASK = "gate";
+    private static final double PILLAR_REACH = 2.6;
 
     private OrreryLogic() {
     }
@@ -63,11 +65,39 @@ public final class OrreryLogic {
         player.displayClientMessage(line, true);
     }
 
-    public static void insert(ServerPlayer player, ItemStack stack, BlockPos controller) {
+    public static int pillarAt(BlockPos controller, Vec3 hit) {
+        BlockPos origin = OrreryStructure.origin(controller);
+        List<OrrerySpec.Socket> sockets = OrrerySpec.get().sockets();
+        int nearest = -1;
+        double best = PILLAR_REACH * PILLAR_REACH;
+        for (int index = 0; index < sockets.size(); index++) {
+            double[] centre = sockets.get(index).center();
+            double dx = hit.x - (origin.getX() + centre[0]);
+            double dz = hit.z - (origin.getZ() + centre[2]);
+            double distance = dx * dx + dz * dz;
+            if (distance <= best) {
+                best = distance;
+                nearest = index;
+            }
+        }
+        return nearest;
+    }
+
+    public static void insert(ServerPlayer player, ItemStack stack, BlockPos controller, Vec3 hit) {
         if (!(stack.getItem() instanceof SealItem seal)) {
             return;
         }
         int bit = ModItems.SEAL_DISTRICTS.indexOf(seal.slug());
+        int pillar = pillarAt(controller, hit);
+        if (pillar < 0) {
+            refuse(player, "message.rift_quests.orrery.no_pillar");
+            return;
+        }
+        if (pillar != bit) {
+            player.displayClientMessage(Component.translatable("message.rift_quests.orrery.wrong_pillar", stack.getHoverName()).withStyle(ChatFormatting.RED), true);
+            player.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.BLOCKS, 0.6F, 1.0F);
+            return;
+        }
         SealOwner owner = stack.get(ModComponents.SEAL_OWNER.get());
         if (owner == null) {
             refuse(player, "message.rift_quests.orrery.unbound");

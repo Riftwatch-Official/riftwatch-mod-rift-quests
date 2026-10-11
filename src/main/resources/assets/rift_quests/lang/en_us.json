@@ -14,6 +14,8 @@
   "message.rift_quests.orrery.unbound": "This seal is not bound to anyone and has no power here.",
   "message.rift_quests.orrery.not_yours": "This seal is bound to someone else.",
   "message.rift_quests.orrery.quests": "Complete all nine seal quests first.",
+  "message.rift_quests.orrery.no_pillar": "Place the seal on one of the nine pillars.",
+  "message.rift_quests.orrery.wrong_pillar": "%s belongs on the pillar of its own colour.",
   "message.rift_quests.orrery.already": "%s is already inserted.",
   "message.rift_quests.orrery.inserted": "%s inserted (%s of %s)",
   "message.rift_quests.orrery.progress": "Seals inserted: %s of %s",
