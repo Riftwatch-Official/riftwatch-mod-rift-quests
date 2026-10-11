@@ -2,6 +2,7 @@ package net.riftwatch.rift_quests.client;
 
 import java.util.Arrays;
 import net.riftwatch.rift_quests.orrery.OrreryLogic;
+import net.riftwatch.rift_quests.orrery.OrreryPillars;
 
 public final class ClientOrrery {
     private static final float SECONDS_PER_TICK = 0.05F;
@@ -13,7 +14,7 @@ public final class ClientOrrery {
     private static final float BURST_EASE = 0.035F;
     private static final float LIT_EASE = 0.05F;
     private static final float[] GLOW = new float[OrreryLogic.SEAL_COUNT];
-    private static int mask;
+    private static long pillars;
     private static float phase;
     private static float currentSpeed = BASE_SPEED;
     private static float burst;
@@ -23,12 +24,12 @@ public final class ClientOrrery {
     private ClientOrrery() {
     }
 
-    public static void setMask(int value) {
-        mask = value & OrreryLogic.FULL;
+    public static void setPillars(long value) {
+        pillars = value;
     }
 
     public static void clear() {
-        mask = 0;
+        pillars = 0;
         phase = 0;
         currentSpeed = BASE_SPEED;
         burst = 0;
@@ -37,19 +38,19 @@ public final class ClientOrrery {
     }
 
     public static boolean open() {
-        return mask == OrreryLogic.FULL;
+        return OrreryPillars.mask(pillars) == OrreryLogic.FULL;
     }
 
     public static int count() {
-        return Integer.bitCount(mask);
+        return Integer.bitCount(OrreryPillars.mask(pillars));
     }
 
     public static float level() {
         return lit;
     }
 
-    public static boolean has(int index) {
-        return (mask & (1 << index)) != 0;
+    public static int sealAt(int pillar) {
+        return OrreryPillars.seal(pillars, pillar);
     }
 
     public static float glow(int index) {
@@ -75,7 +76,7 @@ public final class ClientOrrery {
         lit += ((open() ? 1F : 0F) - lit) * LIT_EASE;
         phase += currentSpeed * SECONDS_PER_TICK;
         for (int index = 0; index < GLOW.length; index++) {
-            float target = (mask & (1 << index)) != 0 ? 1F : 0F;
+            float target = sealAt(index) != OrreryPillars.EMPTY ? 1F : 0F;
             GLOW[index] += (target - GLOW[index]) * GLOW_EASE;
         }
     }

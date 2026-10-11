@@ -93,11 +93,11 @@ public final class Payloads {
         }
     }
 
-    public record OrreryState(int mask) implements CustomPacketPayload {
+    public record OrreryState(long pillars) implements CustomPacketPayload {
         public static final Type<OrreryState> TYPE = Payloads.typeOf("orrery_state");
         public static final StreamCodec<RegistryFriendlyByteBuf, OrreryState> CODEC = StreamCodec.of(
-                (buf, payload) -> buf.writeVarInt(payload.mask()),
-                buf -> new OrreryState(buf.readVarInt()));
+                (buf, payload) -> buf.writeVarLong(payload.pillars()),
+                buf -> new OrreryState(buf.readVarLong()));
 
         @Override
         public Type<OrreryState> type() {

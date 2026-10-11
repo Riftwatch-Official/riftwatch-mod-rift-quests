@@ -12,6 +12,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.riftwatch.rift_quests.orrery.OrreryPillars;
 
 public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
     public static final int MAX_PINNED = 3;
@@ -20,7 +21,7 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
     private final Map<ResourceLocation, QuestRecord> quests = new HashMap<>();
     private final List<ResourceLocation> pinned = new ArrayList<>();
     private boolean bookGiven;
-    private int orreryMask;
+    private long orreryPillars;
 
     public Optional<QuestRecord> find(ResourceLocation quest) {
         return Optional.ofNullable(quests.get(quest));
@@ -79,19 +80,27 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
     }
 
     public int orreryMask() {
-        return orreryMask;
+        return OrreryPillars.mask(orreryPillars);
+    }
+
+    public long orreryPillars() {
+        return orreryPillars;
     }
 
     public boolean hasOrrerySeal(int bit) {
-        return (orreryMask & (1 << bit)) != 0;
+        return (orreryMask() & (1 << bit)) != 0;
     }
 
-    public void insertOrrerySeal(int bit) {
-        orreryMask |= 1 << bit;
+    public int orreryPillarSeal(int pillar) {
+        return OrreryPillars.seal(orreryPillars, pillar);
+    }
+
+    public void insertOrrerySeal(int bit, int pillar) {
+        orreryPillars = OrreryPillars.with(orreryPillars, pillar, bit);
     }
 
     public void clearOrrery() {
-        orreryMask = 0;
+        orreryPillars = 0;
     }
 
     public boolean bookGiven() {
@@ -117,7 +126,8 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
         pinned.forEach(id -> pinnedTag.add(StringTag.valueOf(id.toString())));
         tag.put("pinned", pinnedTag);
         tag.putBoolean("book_given", bookGiven);
-        tag.putInt("orrery_seals", orreryMask);
+        tag.putInt("orrery_seals", orreryMask());
+        tag.putLong("orrery_pillars", orreryPillars);
         return tag;
     }
 
@@ -140,6 +150,8 @@ public final class PlayerQuestData implements INBTSerializable<CompoundTag> {
             }
         }
         bookGiven = tag.getBoolean("book_given");
-        orreryMask = tag.getInt("orrery_seals");
+        orreryPillars = tag.contains("orrery_pillars", Tag.TAG_LONG)
+                ? tag.getLong("orrery_pillars")
+                : OrreryPillars.fromMask(tag.getInt("orrery_seals"));
     }
 }

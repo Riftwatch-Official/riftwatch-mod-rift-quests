@@ -85,7 +85,7 @@ public final class ClientSetup {
 
             @Override
             public void orrery(Payloads.OrreryState payload) {
-                ClientOrrery.setMask(payload.mask());
+                ClientOrrery.setPillars(payload.pillars());
             }
 
             @Override

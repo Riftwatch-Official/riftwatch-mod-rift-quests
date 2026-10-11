@@ -49,7 +49,7 @@ public final class OrreryLogic {
     }
 
     public static void sync(ServerPlayer player) {
-        PacketDistributor.sendToPlayer(player, new Payloads.OrreryState(mask(player)));
+        PacketDistributor.sendToPlayer(player, new Payloads.OrreryState(QuestEngine.data(player).orreryPillars()));
     }
 
     public static void reset(ServerPlayer player) {
@@ -93,11 +93,6 @@ public final class OrreryLogic {
             refuse(player, "message.rift_quests.orrery.no_pillar");
             return;
         }
-        if (pillar != bit) {
-            player.displayClientMessage(Component.translatable("message.rift_quests.orrery.wrong_pillar", stack.getHoverName()).withStyle(ChatFormatting.RED), true);
-            player.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.BLOCKS, 0.6F, 1.0F);
-            return;
-        }
         SealOwner owner = stack.get(ModComponents.SEAL_OWNER.get());
         if (owner == null) {
             refuse(player, "message.rift_quests.orrery.unbound");
@@ -116,11 +111,15 @@ public final class OrreryLogic {
             player.displayClientMessage(Component.translatable("message.rift_quests.orrery.already", stack.getHoverName()).withStyle(ChatFormatting.RED), true);
             return;
         }
+        if (data.orreryPillarSeal(pillar) != OrreryPillars.EMPTY) {
+            refuse(player, "message.rift_quests.orrery.taken");
+            return;
+        }
         stack.shrink(1);
-        data.insertOrrerySeal(bit);
+        data.insertOrrerySeal(bit, pillar);
         sync(player);
         int inserted = Integer.bitCount(data.orreryMask());
-        celebrate(player, controller, bit, inserted == SEAL_COUNT);
+        celebrate(player, controller, pillar, inserted == SEAL_COUNT);
         if (inserted == SEAL_COUNT) {
             player.displayClientMessage(Component.translatable("message.rift_quests.orrery.open").withStyle(ChatFormatting.GOLD), true);
             completeGate(player);
@@ -153,9 +152,9 @@ public final class OrreryLogic {
         }
     }
 
-    private static void celebrate(ServerPlayer player, BlockPos controller, int bit, boolean last) {
+    private static void celebrate(ServerPlayer player, BlockPos controller, int pillar, boolean last) {
         List<OrrerySpec.Socket> sockets = OrrerySpec.get().sockets();
-        double[] centre = sockets.get(bit).center();
+        double[] centre = sockets.get(pillar).center();
         BlockPos origin = OrreryStructure.origin(controller);
         double x = origin.getX() + centre[0];
         double y = origin.getY() + centre[1];
@@ -163,7 +162,7 @@ public final class OrreryLogic {
         ServerLevel level = player.serverLevel();
         double scale = OrrerySpec.get().scale();
         level.sendParticles(player, ParticleTypes.END_ROD, false, x, y, z, 14, 0.2 * scale, 0.3 * scale, 0.2 * scale, 0.02);
-        player.playNotifySound(SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0F, 0.8F + 0.05F * bit);
+        player.playNotifySound(SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0F, 0.8F + 0.05F * pillar);
         if (last) {
             double[] core = OrrerySpec.get().core();
             level.sendParticles(player, ParticleTypes.FIREWORK, false, origin.getX() + core[0], origin.getY() + core[1], origin.getZ() + core[2], 120, 0.8 * scale, 0.8 * scale, 0.8 * scale, 0.1);

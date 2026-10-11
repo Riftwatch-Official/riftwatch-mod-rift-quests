@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.riftwatch.rift_quests.RiftQuestsMod;
 import net.riftwatch.rift_quests.block.SealOrreryBlockEntity;
+import net.riftwatch.rift_quests.orrery.OrreryPillars;
 import net.riftwatch.rift_quests.orrery.OrrerySpec;
 import net.riftwatch.rift_quests.orrery.OrreryStructure;
 import net.riftwatch.rift_quests.registry.ModItems;
@@ -91,8 +92,9 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
         List<ItemStack> stacks = sealStacks();
         float scale = (float) spec.scale();
         for (int index = 0; index < sockets.size(); index++) {
+            int seal = ClientOrrery.sealAt(index);
             float glow = ClientOrrery.glow(index);
-            if (glow < 0.05F) {
+            if (seal == OrreryPillars.EMPTY || glow < 0.05F) {
                 continue;
             }
             OrrerySpec.Socket socket = sockets.get(index);
@@ -101,7 +103,7 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
             poseStack.mulPose(Axis.YP.rotationDegrees((float) socket.yaw() + 180F));
             float size = SEAL_SIZE * scale * glow;
             poseStack.scale(size, size, size);
-            Minecraft.getInstance().getItemRenderer().renderStatic(stacks.get(index), ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
+            Minecraft.getInstance().getItemRenderer().renderStatic(stacks.get(seal),ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY, poseStack, buffer, level, seed + index);
             poseStack.popPose();
         }
@@ -134,9 +136,13 @@ public final class SealOrreryRenderer implements BlockEntityRenderer<SealOrreryB
     private static Look look(String tint, int socket, OrrerySpec spec, int light) {
         switch (tint) {
             case "colour" -> {
-                float glow = socket >= 0 ? ClientOrrery.level() : 0F;
-                int colour = socket >= 0 ? spec.sockets().get(socket).colour() : WHITE;
-                return new Look(mix(mix(BLACK, colour, SLOT_DIM), colour, glow), glow > 0.05F ? LightTexture.FULL_BRIGHT : light);
+                int seal = socket >= 0 ? ClientOrrery.sealAt(socket) : OrreryPillars.EMPTY;
+                int empty = mix(BLACK, WHITE, SLOT_DIM);
+                if (seal == OrreryPillars.EMPTY) {
+                    return new Look(empty, light);
+                }
+                float glow = ClientOrrery.glow(socket);
+                return new Look(mix(empty, spec.sockets().get(seal).colour(), glow), glow > 0.05F ? LightTexture.FULL_BRIGHT : light);
             }
             case "conduit" -> {
                 float glow = socket >= 0 ? ClientOrrery.level() : 0F;
