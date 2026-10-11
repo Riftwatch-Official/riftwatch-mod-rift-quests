@@ -13,6 +13,8 @@ public final class ClientBridge {
         void orrery(Payloads.OrreryState payload);
 
         boolean orreryOpen();
+
+        void districtTitle(Payloads.DistrictTitle payload);
     }
 
     private static final Handler NONE = new Handler() {
@@ -39,6 +41,10 @@ public final class ClientBridge {
         @Override
         public boolean orreryOpen() {
             return false;
+        }
+
+        @Override
+        public void districtTitle(Payloads.DistrictTitle payload) {
         }
     };
 

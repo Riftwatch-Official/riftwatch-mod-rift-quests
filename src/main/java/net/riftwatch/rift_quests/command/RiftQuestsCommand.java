@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.riftwatch.rift_quests.book.Quest;
 import net.riftwatch.rift_quests.book.QuestBook;
+import net.riftwatch.rift_quests.district.DistrictTitles;
 import net.riftwatch.rift_quests.engine.QuestEngine;
 import net.riftwatch.rift_quests.engine.ServerBook;
 import net.riftwatch.rift_quests.load.Problem;
@@ -47,6 +48,9 @@ public final class RiftQuestsCommand {
     private static final String ALL_DISTRICTS = "all";
     private static final SuggestionProvider<CommandSourceStack> DISTRICTS = (context, builder) ->
             SharedSuggestionProvider.suggest(Stream.concat(Stream.of(ALL_DISTRICTS), ModItems.SEAL_DISTRICTS.stream()), builder);
+
+    private static final SuggestionProvider<CommandSourceStack> TITLES = (context, builder) ->
+            SharedSuggestionProvider.suggest(DistrictTitles.NAMES, builder);
 
     private RiftQuestsCommand() {
     }
@@ -80,6 +84,32 @@ public final class RiftQuestsCommand {
         return targets.size();
     }
 
+    private static int title(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> targets) throws CommandSyntaxException {
+        String district = StringArgumentType.getString(context, "district");
+        if (!DistrictTitles.NAMES.contains(district)) {
+            throw UNKNOWN_DISTRICT.create(district);
+        }
+        int sent = 0;
+        for (ServerPlayer player : targets) {
+            if (DistrictTitles.send(player, district)) {
+                sent++;
+            }
+        }
+        int result = sent;
+        context.getSource().sendSuccess(() -> Component.literal("Showed the title of " + district + " to " + result + " players"), false);
+        return result;
+    }
+
+    private static int reloadTitles(CommandSourceStack source) {
+        int count = DistrictTitles.load();
+        if (count < 0) {
+            source.sendFailure(Component.literal("Could not read the district file, see the server log"));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("District titles: " + count + " districts"), true);
+        return count;
+    }
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("riftquests")
                 .then(Commands.literal("open").executes(context -> open(context.getSource())))
@@ -110,6 +140,12 @@ public final class RiftQuestsCommand {
                                         .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::giveSeal))))
                         .then(Commands.literal("reset")
                                 .then(Commands.argument("targets", EntityArgument.players()).executes(RiftQuestsCommand::resetOrrery))))
+                .then(Commands.literal("title").requires(RiftQuestsCommand::admin)
+                        .then(Commands.literal("reload").executes(context -> reloadTitles(context.getSource())))
+                        .then(Commands.argument("district", StringArgumentType.word()).suggests(TITLES)
+                                .executes(context -> title(context, List.of(context.getSource().getPlayerOrException())))
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .executes(context -> title(context, EntityArgument.getPlayers(context, "targets"))))))
                 .then(Commands.literal("status").requires(RiftQuestsCommand::admin)
                         .then(Commands.argument("player", EntityArgument.player()).executes(RiftQuestsCommand::status)))
                 .then(Commands.literal("progress").requires(RiftQuestsCommand::admin)

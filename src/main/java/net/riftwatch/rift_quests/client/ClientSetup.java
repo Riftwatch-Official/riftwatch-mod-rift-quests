@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
 import net.riftwatch.rift_quests.RiftQuestsMod;
+import net.riftwatch.rift_quests.client.title.TitleOverlay;
 import net.riftwatch.rift_quests.network.BookView;
 import net.riftwatch.rift_quests.network.ClientBridge;
 import net.riftwatch.rift_quests.network.Payloads;
@@ -44,6 +45,8 @@ public final class ClientSetup {
         modEventBus.addListener(RegisterKeyMappingsEvent.class, event -> event.register(OPEN_BOOK));
         modEventBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerAbove(VanillaGuiLayers.SCOREBOARD_SIDEBAR,
                 ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "tracker"), QuestTracker::render));
+        modEventBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerAbove(VanillaGuiLayers.TITLE,
+                ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "district_title"), TitleOverlay::render));
         modEventBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
                 event -> event.registerBlockEntityRenderer(ModBlocks.SEAL_ORRERY_ENTITY.get(), context -> new SealOrreryRenderer()));
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
@@ -55,6 +58,7 @@ public final class ClientSetup {
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
             ClientQuests.clear();
             ClientOrrery.clear();
+            TitleOverlay.clear();
         });
         SealAnimation.init();
         ClientBridge.install(new ClientBridge.Handler() {
@@ -91,6 +95,11 @@ public final class ClientSetup {
             @Override
             public boolean orreryOpen() {
                 return ClientOrrery.open();
+            }
+
+            @Override
+            public void districtTitle(Payloads.DistrictTitle payload) {
+                TitleOverlay.show(payload.district());
             }
 
             @Override

@@ -22,6 +22,7 @@ public final class ModNetwork {
         registrar.playToClient(Payloads.Progress.TYPE, Payloads.Progress.CODEC, (payload, context) -> ClientBridge.handler().progress(payload));
         registrar.playToClient(Payloads.QuestCompleted.TYPE, Payloads.QuestCompleted.CODEC, (payload, context) -> ClientBridge.handler().questCompleted(payload));
         registrar.playToClient(Payloads.OrreryState.TYPE, Payloads.OrreryState.CODEC, (payload, context) -> ClientBridge.handler().orrery(payload));
+        registrar.playToClient(Payloads.DistrictTitle.TYPE, Payloads.DistrictTitle.CODEC, (payload, context) -> ClientBridge.handler().districtTitle(payload));
         registrar.playToClient(Payloads.OpenBook.TYPE, Payloads.OpenBook.CODEC, (payload, context) -> ClientBridge.handler().openBook());
         registrar.playToServer(Payloads.Claim.TYPE, Payloads.Claim.CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player) {

@@ -105,6 +105,18 @@ public final class Payloads {
         }
     }
 
+    public record DistrictTitle(String district) implements CustomPacketPayload {
+        public static final Type<DistrictTitle> TYPE = Payloads.typeOf("district_title");
+        public static final StreamCodec<RegistryFriendlyByteBuf, DistrictTitle> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeUtf(payload.district(), 64),
+                buf -> new DistrictTitle(buf.readUtf(64)));
+
+        @Override
+        public Type<DistrictTitle> type() {
+            return TYPE;
+        }
+    }
+
     public record OpenBook() implements CustomPacketPayload {
         public static final Type<OpenBook> TYPE = Payloads.typeOf("open_book");
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenBook> CODEC = StreamCodec.unit(new OpenBook());

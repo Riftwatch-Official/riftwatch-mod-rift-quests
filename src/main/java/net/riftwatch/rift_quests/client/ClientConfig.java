@@ -16,6 +16,9 @@ public final class ClientConfig {
     public static final ModConfigSpec.BooleanValue SHOW_TOASTS = BUILDER
             .comment("Show a toast when a quest is completed.")
             .define("showToasts", true);
+    public static final ModConfigSpec.BooleanValue SHOW_DISTRICT_TITLES = BUILDER
+            .comment("Show the district title when entering a district.")
+            .define("showDistrictTitles", true);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 

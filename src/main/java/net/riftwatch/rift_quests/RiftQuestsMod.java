@@ -14,6 +14,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.riftwatch.rift_quests.client.ClientSetup;
 import net.riftwatch.rift_quests.command.RiftQuestsCommand;
+import net.riftwatch.rift_quests.district.DistrictTitles;
 import net.riftwatch.rift_quests.engine.QuestEngine;
 import net.riftwatch.rift_quests.engine.TaskEvents;
 import net.riftwatch.rift_quests.load.QuestBookLoader;
@@ -40,6 +41,7 @@ public final class RiftQuestsMod {
         ModAttachments.register(modEventBus);
         ModNetwork.register(modEventBus);
         TaskEvents.register(NeoForge.EVENT_BUS);
+        DistrictTitles.register(NeoForge.EVENT_BUS);
         NeoForge.EVENT_BUS.addListener(RiftQuestsMod::addReloadListeners);
         NeoForge.EVENT_BUS.addListener(RiftQuestsMod::serverStarted);
         NeoForge.EVENT_BUS.addListener(RiftQuestsMod::datapackSync);
