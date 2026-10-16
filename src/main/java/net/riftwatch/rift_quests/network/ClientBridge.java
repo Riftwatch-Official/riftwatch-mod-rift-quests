@@ -21,6 +21,8 @@ public final class ClientBridge {
         void veilPass(Payloads.VeilPass payload);
 
         boolean veilPass();
+
+        void arenaMusic(Payloads.ArenaMusic payload);
     }
 
     private static final Handler NONE = new Handler() {
@@ -64,6 +66,10 @@ public final class ClientBridge {
         @Override
         public boolean veilPass() {
             return false;
+        }
+
+        @Override
+        public void arenaMusic(Payloads.ArenaMusic payload) {
         }
     };
 

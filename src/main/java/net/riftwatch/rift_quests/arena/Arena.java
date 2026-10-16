@@ -78,6 +78,7 @@ public final class Arena {
     private static final Set<UUID> DEBUG_PLAYED = new HashSet<>();
     private static final Map<UUID, Puppet> PUPPETS = new HashMap<>();
     private static final Map<UUID, Integer> BEAM_TIME = new HashMap<>();
+    private static final Set<UUID> MUSIC = new HashSet<>();
 
     private Arena() {
     }
@@ -205,6 +206,7 @@ public final class Arena {
         DEBUG_PLAYED.clear();
         PUPPETS.clear();
         BEAM_TIME.clear();
+        MUSIC.clear();
         Cinematics.endAll();
     }
 
@@ -212,6 +214,8 @@ public final class Arena {
         DEBUG.remove(player.getUUID());
         DEBUG_PLAYED.remove(player.getUUID());
         BEAM_TIME.remove(player.getUUID());
+        MUSIC.remove(player.getUUID());
+        SHOWN.remove(player.getUUID());
         if (player instanceof ServerPlayer serverPlayer) {
             Cinematics.end(serverPlayer);
         }
@@ -273,6 +277,39 @@ public final class Arena {
                 }
             }
         }
+        music(server, level, current);
+    }
+
+    private static boolean hearsMusic(ServerPlayer player, ArenaConfig current) {
+        if (!inArena(player, current) || player.isSpectator()) {
+            return false;
+        }
+        if (DEBUG.contains(player.getUUID())) {
+            return Cinematics.watching(player);
+        }
+        return state == State.INTRO || state == State.FIGHT;
+    }
+
+    private static void music(MinecraftServer server, ServerLevel level, ArenaConfig current) {
+        Set<UUID> hearing = new HashSet<>();
+        for (ServerPlayer player : level.players()) {
+            if (hearsMusic(player, current)) {
+                hearing.add(player.getUUID());
+                if (MUSIC.add(player.getUUID())) {
+                    PacketDistributor.sendToPlayer(player, new Payloads.ArenaMusic(true));
+                }
+            }
+        }
+        for (UUID id : new ArrayList<>(MUSIC)) {
+            if (hearing.contains(id)) {
+                continue;
+            }
+            MUSIC.remove(id);
+            ServerPlayer player = server.getPlayerList().getPlayer(id);
+            if (player != null) {
+                PacketDistributor.sendToPlayer(player, new Payloads.ArenaMusic(false));
+            }
+        }
     }
 
     private static void tryStart(MinecraftServer server, ServerLevel level, ArenaConfig current, List<ServerPlayer> eligible, long now) {
@@ -332,6 +369,11 @@ public final class Arena {
         if (!current.area().contains(entity.position())) {
             entity.teleportTo(current.centre().x, current.centre().y, current.centre().z);
         }
+        Set<UUID> present = new HashSet<>();
+        for (ServerPlayer player : eligible) {
+            present.add(player.getUUID());
+        }
+        SHOWN.retainAll(present);
         for (ServerPlayer player : eligible) {
             if (landed(player) && !SHOWN.contains(player.getUUID())) {
                 SHOWN.add(player.getUUID());

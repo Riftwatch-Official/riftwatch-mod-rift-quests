@@ -63,6 +63,7 @@ public final class ClientSetup {
             ClientOrrery.clear();
             TitleOverlay.clear();
             ClientCinematic.clear();
+            ArenaMusic.clear();
         });
         ClientCinematic.init();
         SealAnimation.init();
@@ -120,6 +121,11 @@ public final class ClientSetup {
             @Override
             public boolean veilPass() {
                 return ClientCinematic.veilPass();
+            }
+
+            @Override
+            public void arenaMusic(Payloads.ArenaMusic payload) {
+                ArenaMusic.set(payload.playing());
             }
 
             @Override

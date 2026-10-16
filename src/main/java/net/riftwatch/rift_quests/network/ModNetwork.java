@@ -26,6 +26,7 @@ public final class ModNetwork {
         registrar.playToClient(Payloads.DistrictTitle.TYPE, Payloads.DistrictTitle.CODEC, (payload, context) -> ClientBridge.handler().districtTitle(payload));
         registrar.playToClient(Payloads.Cinematic.TYPE, Payloads.Cinematic.CODEC, (payload, context) -> ClientBridge.handler().cinematic(payload));
         registrar.playToClient(Payloads.VeilPass.TYPE, Payloads.VeilPass.CODEC, (payload, context) -> ClientBridge.handler().veilPass(payload));
+        registrar.playToClient(Payloads.ArenaMusic.TYPE, Payloads.ArenaMusic.CODEC, (payload, context) -> ClientBridge.handler().arenaMusic(payload));
         registrar.playToServer(Payloads.CinematicSkip.TYPE, Payloads.CinematicSkip.CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player) {
                 Arena.skipped(player);

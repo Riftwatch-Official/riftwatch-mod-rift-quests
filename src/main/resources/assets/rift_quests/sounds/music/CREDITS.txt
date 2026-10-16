@@ -1,0 +1,5 @@
+rift_monarch.ogg
+"Epic Boss Battle [Seamlessly Looping]" by Juhani Junkala (SubspaceAudio)
+Source: https://opengameart.org/node/55649 ("Boss Battle Music")
+Licence: CC0 1.0 Universal (public domain dedication)
+Changes: volume lowered by 11.2 dB, encoded as Ogg Vorbis.

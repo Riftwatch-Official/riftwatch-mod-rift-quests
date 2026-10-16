@@ -114,5 +114,6 @@
   "rift_quests.configuration.showTracker": "Show pinned quests",
   "rift_quests.configuration.showToasts": "Quest toasts",
   "rift_quests.configuration.showDistrictTitles": "District titles",
-  "message.rift_quests.cinematic.skip": "Hold sneak to skip"
+  "message.rift_quests.cinematic.skip": "Hold sneak to skip",
+  "jukebox_song.rift_quests.rift_monarch": "Juhani Junkala - Epic Boss Battle"
 }

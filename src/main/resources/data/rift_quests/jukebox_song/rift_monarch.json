@@ -1,0 +1,8 @@
+{
+  "sound_event": "rift_quests:music.rift_monarch",
+  "description": {
+    "translate": "jukebox_song.rift_quests.rift_monarch"
+  },
+  "length_in_seconds": 123.43,
+  "comparator_output": 15
+}

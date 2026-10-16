@@ -153,6 +153,18 @@ public final class Payloads {
         }
     }
 
+    public record ArenaMusic(boolean playing) implements CustomPacketPayload {
+        public static final Type<ArenaMusic> TYPE = Payloads.typeOf("arena_music");
+        public static final StreamCodec<RegistryFriendlyByteBuf, ArenaMusic> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeBoolean(payload.playing()),
+                buf -> new ArenaMusic(buf.readBoolean()));
+
+        @Override
+        public Type<ArenaMusic> type() {
+            return TYPE;
+        }
+    }
+
     public record CinematicSkip() implements CustomPacketPayload {
         public static final Type<CinematicSkip> TYPE = Payloads.typeOf("cinematic_skip");
         public static final StreamCodec<RegistryFriendlyByteBuf, CinematicSkip> CODEC = StreamCodec.unit(new CinematicSkip());

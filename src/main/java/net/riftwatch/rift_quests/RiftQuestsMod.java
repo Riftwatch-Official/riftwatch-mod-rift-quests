@@ -26,6 +26,7 @@ import net.riftwatch.rift_quests.registry.ModBlocks;
 import net.riftwatch.rift_quests.registry.ModComponents;
 import net.riftwatch.rift_quests.registry.ModItems;
 import net.riftwatch.rift_quests.registry.ModLoot;
+import net.riftwatch.rift_quests.registry.ModSounds;
 import org.slf4j.Logger;
 
 @Mod(RiftQuestsMod.MOD_ID)
@@ -39,6 +40,7 @@ public final class RiftQuestsMod {
         ModLoot.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
+        ModSounds.register(modEventBus);
         ModAttachments.register(modEventBus);
         ModNetwork.register(modEventBus);
         TaskEvents.register(NeoForge.EVENT_BUS);

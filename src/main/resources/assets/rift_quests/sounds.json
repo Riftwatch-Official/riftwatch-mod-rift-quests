@@ -1,0 +1,10 @@
+{
+  "music.rift_monarch": {
+    "sounds": [
+      {
+        "name": "rift_quests:music/rift_monarch",
+        "stream": true
+      }
+    ]
+  }
+}
