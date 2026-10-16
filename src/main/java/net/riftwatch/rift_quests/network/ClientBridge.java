@@ -15,6 +15,12 @@ public final class ClientBridge {
         boolean orreryOpen();
 
         void districtTitle(Payloads.DistrictTitle payload);
+
+        void cinematic(Payloads.Cinematic payload);
+
+        void veilPass(Payloads.VeilPass payload);
+
+        boolean veilPass();
     }
 
     private static final Handler NONE = new Handler() {
@@ -45,6 +51,19 @@ public final class ClientBridge {
 
         @Override
         public void districtTitle(Payloads.DistrictTitle payload) {
+        }
+
+        @Override
+        public void cinematic(Payloads.Cinematic payload) {
+        }
+
+        @Override
+        public void veilPass(Payloads.VeilPass payload) {
+        }
+
+        @Override
+        public boolean veilPass() {
+            return false;
         }
     };
 

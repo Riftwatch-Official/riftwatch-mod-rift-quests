@@ -1,5 +1,6 @@
 package net.riftwatch.rift_quests.registry;
 
+import com.mojang.serialization.Codec;
 import java.util.function.Supplier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.IEventBus;
@@ -14,6 +15,9 @@ public final class ModAttachments {
 
     public static final Supplier<AttachmentType<PlayerQuestData>> PROGRESS = ATTACHMENTS.register("progress",
             () -> AttachmentType.serializable(PlayerQuestData::new).copyOnDeath().build());
+
+    public static final Supplier<AttachmentType<Boolean>> CINEMATIC_SEEN = ATTACHMENTS.register("cinematic_seen",
+            () -> AttachmentType.builder(() -> Boolean.FALSE).serialize(Codec.BOOL).copyOnDeath().build());
 
     private ModAttachments() {
     }

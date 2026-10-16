@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.riftwatch.rift_quests.arena.Arena;
 import net.riftwatch.rift_quests.engine.QuestEngine;
 
 public final class ModNetwork {
@@ -23,6 +24,13 @@ public final class ModNetwork {
         registrar.playToClient(Payloads.QuestCompleted.TYPE, Payloads.QuestCompleted.CODEC, (payload, context) -> ClientBridge.handler().questCompleted(payload));
         registrar.playToClient(Payloads.OrreryState.TYPE, Payloads.OrreryState.CODEC, (payload, context) -> ClientBridge.handler().orrery(payload));
         registrar.playToClient(Payloads.DistrictTitle.TYPE, Payloads.DistrictTitle.CODEC, (payload, context) -> ClientBridge.handler().districtTitle(payload));
+        registrar.playToClient(Payloads.Cinematic.TYPE, Payloads.Cinematic.CODEC, (payload, context) -> ClientBridge.handler().cinematic(payload));
+        registrar.playToClient(Payloads.VeilPass.TYPE, Payloads.VeilPass.CODEC, (payload, context) -> ClientBridge.handler().veilPass(payload));
+        registrar.playToServer(Payloads.CinematicSkip.TYPE, Payloads.CinematicSkip.CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player) {
+                Arena.skipped(player);
+            }
+        });
         registrar.playToClient(Payloads.OpenBook.TYPE, Payloads.OpenBook.CODEC, (payload, context) -> ClientBridge.handler().openBook());
         registrar.playToServer(Payloads.Claim.TYPE, Payloads.Claim.CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player) {

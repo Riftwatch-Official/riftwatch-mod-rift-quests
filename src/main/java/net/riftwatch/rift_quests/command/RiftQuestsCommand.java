@@ -1,6 +1,7 @@
 package net.riftwatch.rift_quests.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -21,6 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.riftwatch.rift_quests.arena.Arena;
 import net.riftwatch.rift_quests.book.Quest;
 import net.riftwatch.rift_quests.book.QuestBook;
 import net.riftwatch.rift_quests.district.DistrictTitles;
@@ -146,6 +148,27 @@ public final class RiftQuestsCommand {
                                 .executes(context -> title(context, List.of(context.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(context -> title(context, EntityArgument.getPlayers(context, "targets"))))))
+                .then(Commands.literal("cinematic").requires(RiftQuestsCommand::admin)
+                        .then(Commands.literal("debug")
+                                .then(Commands.argument("on", BoolArgumentType.bool())
+                                        .executes(context -> cinematicDebug(context, List.of(context.getSource().getPlayerOrException())))
+                                        .then(Commands.argument("targets", EntityArgument.players())
+                                                .executes(context -> cinematicDebug(context, EntityArgument.getPlayers(context, "targets"))))))
+                        .then(Commands.literal("play")
+                                .executes(context -> cinematicPlay(context.getSource(), List.of(context.getSource().getPlayerOrException())))
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .executes(context -> cinematicPlay(context.getSource(), EntityArgument.getPlayers(context, "targets"))))))
+                .then(Commands.literal("arena").requires(RiftQuestsCommand::admin)
+                        .then(Commands.literal("status").executes(context -> {
+                            context.getSource().sendSuccess(() -> Component.literal(Arena.status()), false);
+                            return 1;
+                        }))
+                        .then(Commands.literal("reload").executes(context -> reloadArena(context.getSource())))
+                        .then(Commands.literal("reset").executes(context -> {
+                            Arena.reset(context.getSource().getServer());
+                            context.getSource().sendSuccess(() -> Component.literal("Arena reset, boss and puppets removed"), true);
+                            return 1;
+                        })))
                 .then(Commands.literal("status").requires(RiftQuestsCommand::admin)
                         .then(Commands.argument("player", EntityArgument.player()).executes(RiftQuestsCommand::status)))
                 .then(Commands.literal("progress").requires(RiftQuestsCommand::admin)
@@ -155,6 +178,40 @@ public final class RiftQuestsCommand {
                                                 .executes(context -> progress(context, 1))
                                                 .then(Commands.argument("amount", IntegerArgumentType.integer(1, 100_000))
                                                         .executes(context -> progress(context, IntegerArgumentType.getInteger(context, "amount")))))))));
+    }
+
+    private static int cinematicDebug(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> targets) {
+        boolean on = BoolArgumentType.getBool(context, "on");
+        targets.forEach(player -> Arena.setDebug(player, on));
+        context.getSource().sendSuccess(() -> Component.literal((on ? "Cinematic debug on" : "Cinematic debug off") + " for " + targets.size()
+                + " players" + (on ? ": the Seal Veil lets them through, landing in the arena plays the entry cinematic without a fight" : "")), true);
+        return targets.size();
+    }
+
+    private static int cinematicPlay(CommandSourceStack source, Collection<ServerPlayer> targets) {
+        int played = 0;
+        for (ServerPlayer player : targets) {
+            if (Arena.playDebug(player)) {
+                played++;
+            }
+        }
+        int result = played;
+        if (result == 0) {
+            source.sendFailure(Component.literal(Arena.config() == null ? "The arena is off (no config file)" : "Nobody is inside the arena"));
+        } else {
+            source.sendSuccess(() -> Component.literal("Played the entry cinematic for " + result + " players"), false);
+        }
+        return result;
+    }
+
+    private static int reloadArena(CommandSourceStack source) {
+        int result = Arena.load();
+        if (result < 0) {
+            source.sendFailure(Component.literal("Could not read the arena file, see the server log"));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal(Arena.status()), true);
+        return result;
     }
 
     private static boolean admin(CommandSourceStack source) {

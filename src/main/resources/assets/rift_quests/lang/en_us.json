@@ -113,5 +113,6 @@
   "rift_quests.configuration.animatedTicketName": "Animated ticket name",
   "rift_quests.configuration.showTracker": "Show pinned quests",
   "rift_quests.configuration.showToasts": "Quest toasts",
-  "rift_quests.configuration.showDistrictTitles": "District titles"
+  "rift_quests.configuration.showDistrictTitles": "District titles",
+  "message.rift_quests.cinematic.skip": "Hold sneak to skip"
 }

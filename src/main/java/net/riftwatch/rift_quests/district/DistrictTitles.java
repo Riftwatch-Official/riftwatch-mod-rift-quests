@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 
 public final class DistrictTitles {
     public static final List<String> NAMES = List.of("castle_city", "desert_citadel", "ice_settlement", "jungle_city", "jungle_temple", "monastery",
-            "pyramid_row", "river_oasis", "river_palace", "sky_fortress");
+            "pyramid_row", "river_oasis", "river_palace", "sky_fortress", "rift_monarch");
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String FILE = "rift_guard-districts.json";
     private static final int INTERVAL = 10;

@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
 import net.riftwatch.rift_quests.RiftQuestsMod;
+import net.riftwatch.rift_quests.client.cinematic.ClientCinematic;
 import net.riftwatch.rift_quests.client.title.TitleOverlay;
 import net.riftwatch.rift_quests.network.BookView;
 import net.riftwatch.rift_quests.network.ClientBridge;
@@ -47,6 +48,8 @@ public final class ClientSetup {
                 ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "tracker"), QuestTracker::render));
         modEventBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerAbove(VanillaGuiLayers.TITLE,
                 ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "district_title"), TitleOverlay::render));
+        modEventBus.addListener(RegisterGuiLayersEvent.class, event -> event.registerAbove(VanillaGuiLayers.TITLE,
+                ResourceLocation.fromNamespaceAndPath(RiftQuestsMod.MOD_ID, "cinematic"), ClientCinematic::render));
         modEventBus.addListener(EntityRenderersEvent.RegisterRenderers.class,
                 event -> event.registerBlockEntityRenderer(ModBlocks.SEAL_ORRERY_ENTITY.get(), context -> new SealOrreryRenderer()));
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
@@ -59,7 +62,9 @@ public final class ClientSetup {
             ClientQuests.clear();
             ClientOrrery.clear();
             TitleOverlay.clear();
+            ClientCinematic.clear();
         });
+        ClientCinematic.init();
         SealAnimation.init();
         ClientBridge.install(new ClientBridge.Handler() {
             @Override
@@ -100,6 +105,21 @@ public final class ClientSetup {
             @Override
             public void districtTitle(Payloads.DistrictTitle payload) {
                 TitleOverlay.show(payload.district());
+            }
+
+            @Override
+            public void cinematic(Payloads.Cinematic payload) {
+                ClientCinematic.start(payload);
+            }
+
+            @Override
+            public void veilPass(Payloads.VeilPass payload) {
+                ClientCinematic.setVeilPass(payload.open());
+            }
+
+            @Override
+            public boolean veilPass() {
+                return ClientCinematic.veilPass();
             }
 
             @Override

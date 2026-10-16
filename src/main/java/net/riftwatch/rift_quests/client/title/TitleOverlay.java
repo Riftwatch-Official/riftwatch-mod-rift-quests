@@ -16,17 +16,18 @@ import org.slf4j.Logger;
 
 public final class TitleOverlay {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final Map<String, Function<TitleLayout, TitleStyle>> FACTORIES = Map.of(
-            "castle_city", CastleCityTitle::new,
-            "desert_citadel", DesertCitadelTitle::new,
-            "ice_settlement", IceSettlementTitle::new,
-            "jungle_city", JungleCityTitle::new,
-            "jungle_temple", JungleTempleTitle::new,
-            "monastery", MonasteryTitle::new,
-            "pyramid_row", PyramidRowTitle::new,
-            "river_oasis", RiverOasisTitle::new,
-            "river_palace", RiverPalaceTitle::new,
-            "sky_fortress", SkyFortressTitle::new);
+    private static final Map<String, Function<TitleLayout, TitleStyle>> FACTORIES = Map.ofEntries(
+            Map.entry("castle_city", CastleCityTitle::new),
+            Map.entry("desert_citadel", DesertCitadelTitle::new),
+            Map.entry("ice_settlement", IceSettlementTitle::new),
+            Map.entry("jungle_city", JungleCityTitle::new),
+            Map.entry("jungle_temple", JungleTempleTitle::new),
+            Map.entry("monastery", MonasteryTitle::new),
+            Map.entry("pyramid_row", PyramidRowTitle::new),
+            Map.entry("river_oasis", RiverOasisTitle::new),
+            Map.entry("river_palace", RiverPalaceTitle::new),
+            Map.entry("sky_fortress", SkyFortressTitle::new),
+            Map.entry("rift_monarch", RiftMonarchTitle::new));
     private static final Map<String, TitleStyle> STYLES = new HashMap<>();
 
     private static TitleStyle active;
@@ -40,6 +41,10 @@ public final class TitleOverlay {
         if (!ClientConfig.SHOW_DISTRICT_TITLES.get()) {
             return;
         }
+        showAlways(district);
+    }
+
+    public static void showAlways(String district) {
         TitleStyle style = style(district);
         if (style == null) {
             return;

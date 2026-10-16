@@ -117,6 +117,52 @@ public final class Payloads {
         }
     }
 
+    public record Cinematic(String name, double centreX, double centreY, double centreZ, double landingX, double landingY, double landingZ,
+                            double throneTop, boolean skippable) implements CustomPacketPayload {
+        public static final Type<Cinematic> TYPE = Payloads.typeOf("cinematic");
+        public static final StreamCodec<RegistryFriendlyByteBuf, Cinematic> CODEC = StreamCodec.of(
+                (buf, payload) -> {
+                    buf.writeUtf(payload.name(), 64);
+                    buf.writeDouble(payload.centreX());
+                    buf.writeDouble(payload.centreY());
+                    buf.writeDouble(payload.centreZ());
+                    buf.writeDouble(payload.landingX());
+                    buf.writeDouble(payload.landingY());
+                    buf.writeDouble(payload.landingZ());
+                    buf.writeDouble(payload.throneTop());
+                    buf.writeBoolean(payload.skippable());
+                },
+                buf -> new Cinematic(buf.readUtf(64), buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
+                        buf.readDouble(), buf.readDouble(), buf.readBoolean()));
+
+        @Override
+        public Type<Cinematic> type() {
+            return TYPE;
+        }
+    }
+
+    public record VeilPass(boolean open) implements CustomPacketPayload {
+        public static final Type<VeilPass> TYPE = Payloads.typeOf("veil_pass");
+        public static final StreamCodec<RegistryFriendlyByteBuf, VeilPass> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeBoolean(payload.open()),
+                buf -> new VeilPass(buf.readBoolean()));
+
+        @Override
+        public Type<VeilPass> type() {
+            return TYPE;
+        }
+    }
+
+    public record CinematicSkip() implements CustomPacketPayload {
+        public static final Type<CinematicSkip> TYPE = Payloads.typeOf("cinematic_skip");
+        public static final StreamCodec<RegistryFriendlyByteBuf, CinematicSkip> CODEC = StreamCodec.unit(new CinematicSkip());
+
+        @Override
+        public Type<CinematicSkip> type() {
+            return TYPE;
+        }
+    }
+
     public record OpenBook() implements CustomPacketPayload {
         public static final Type<OpenBook> TYPE = Payloads.typeOf("open_book");
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenBook> CODEC = StreamCodec.unit(new OpenBook());
