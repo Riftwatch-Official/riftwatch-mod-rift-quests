@@ -159,6 +159,7 @@ public final class ClientCinematic {
         camera = new RemotePlayer(minecraft.level, player.getGameProfile());
         cameraType = minecraft.options.getCameraType();
         minecraft.options.setCameraType(CameraType.FIRST_PERSON);
+        minecraft.gameRenderer.setRenderHand(false);
         pose(0);
         place();
         minecraft.setCameraEntity(camera);
@@ -312,6 +313,7 @@ public final class ClientCinematic {
         if (cameraType != null) {
             minecraft.options.setCameraType(cameraType);
         }
+        minecraft.gameRenderer.setRenderHand(true);
         active = null;
         camera = null;
         cameraType = null;
